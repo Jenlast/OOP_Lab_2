@@ -9,8 +9,8 @@ namespace OOP_Lab_2
 {
     partial class MyMatrix
     {
-        public int Height { get; private set; }
-        public int Width { get; private set; }
+        public int Height { get => matrix.GetLength(0); }
+        public int Width { get => matrix.GetLength(1); }
         public MyMatrix() { }
         public int getHeight() => Height;
         public int getWidth() => Width;
@@ -40,23 +40,16 @@ namespace OOP_Lab_2
         public void SetElement(int i, int j, double value) => this[i, j] = value;
         public override string ToString()
         {
-           StringBuilder sb = new StringBuilder();
+            string s = "";
             for (int i = 0; i < Height; i++)
             {
                 for (int j = 0; j < Width; j++)
                 {
-                    sb.Append(matrix[i, j].ToString("F2"));
-                    if (j < Width - 1)
-                    {
-                        sb.Append("\t");
-                    }
+                    s += matrix[i, j].ToString() + (j + 1 < Width ? "\t" : "");
                 }
-                if (i < Height - 1)
-                {
-                    sb.AppendLine();
-                }
+                if (i + 1 < Height) s += "\n";
             }
-            return sb.ToString();
+            return s;
         }
         public MyMatrix(int height, int width)
         {
@@ -65,77 +58,66 @@ namespace OOP_Lab_2
                 throw new ArgumentException("Height and Width must be positive integers.");
             }
             matrix = new double[height, width];
-            Height = height;
-            Width = width;
+            
         }
         public MyMatrix(MyMatrix other)
         {
-            Height = other.Height;
-            Width = other.Width;
-            matrix = new double[Height, Width];
-            Buffer.BlockCopy(other.matrix, 0, matrix, 0, sizeof(double) * Height * Width);
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            int h = other.Height;
+            int w = other.Width;
+            matrix = new double[h, w];
+            for (int i = 0; i < h; i++)
+                for (int j = 0; j < w; j++)
+                    matrix[i, j] = other.matrix[i, j];
         }
-        public MyMatrix(double[,] matrix1)
+        public MyMatrix(double[,] array)
         {
             if (matrix == null)
             {
                 throw new ArgumentNullException("Matrix cannot be null.");
             }
-            Height = matrix.GetLength(0);
-            Width = matrix.GetLength(1);
-            if (Height == 0 || Width == 0)
-            {
-                throw new ArgumentException("Matrix dimensions must be greater than zero.");
-            }
-            matrix = new double[Height, Width];
-            Buffer.BlockCopy(matrix1, 0, matrix, 0, sizeof(double) * Height * Width);
+            int h = array.GetLength(0);
+            int w = array.GetLength(1);
+            matrix = new double[h, w];
+            Array.Copy(array, matrix, array.Length);
         }
-        public MyMatrix(double[][] jaggedMatrix)
+        public MyMatrix(double[][] jagged)
         {
-            if (jaggedMatrix == null || jaggedMatrix.Length == 0 || jaggedMatrix[0].Length == 0)
+            if (jagged == null || jagged.Length == 0 || jagged[0].Length == 0)
             {
                 throw new ArgumentException("Jagged matrix cannot be null or empty.");
             }
-            Height = jaggedMatrix.Length;
-            Width = jaggedMatrix[0].Length;
-            matrix = new double[Height, Width];
-            for (int i = 0; i < Height; i++)
+            int h = jagged.Length;
+            int w = jagged[0].Length;
+
+            for (int i = 1; i < h; i++)
             {
-                if (jaggedMatrix[i] == null || jaggedMatrix[i].Length != Width)
-                {
-                    throw new ArgumentException("All rows in the jagged matrix must have the same length.");
-                }
-                for (int j = 0; j < Width; j++)
-                {
-                    matrix[i, j] = jaggedMatrix[i][j];
-                }
+                if (jagged[i].Length != w)
+                    throw new ArgumentException("Зубчастний масив не прямокутний.", nameof(jagged));
+
             }
+            matrix = new double[h, w];
+            for (int i = 0; i < h; i++)
+                for (int j = 0; j < w; j++)
+                    matrix[i, j] = jagged[i][j];
         }
-        public MyMatrix(string matrixString)
+        public MyMatrix(string multistring)
         {
-            if (string.IsNullOrWhiteSpace(matrixString))
-            {
-                throw new ArgumentException("Matrix string cannot be null or empty.");
-            }
-            var rows = matrixString.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-            Height = rows.Length;
-            Width = rows[0].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
-            matrix = new double[Height, Width];
+            if (multistring == null)
+                throw new ArgumentNullException(nameof(multistring));
+
+            string[] lines = multistring.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            new MyMatrix(lines).CopyTo(ref matrix);            
+        }
+
+        private void CopyTo(ref double[,] target)
+        {
+            target = new double[Height, Width];
             for (int i = 0; i < Height; i++)
-            {
-                var cols = rows[i].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                if (cols.Length != Width)
-                {
-                    throw new ArgumentException("All rows in the matrix string must have the same number of columns.");
-                }
                 for (int j = 0; j < Width; j++)
-                {
-                    if (!double.TryParse(cols[j], out matrix[i, j]))
-                    {
-                        throw new FormatException($"Invalid number format at row {i + 1}, column {j + 1}.");
-                    }
-                }
-            }
+                    target[i, j] = matrix[i, j];
         }
         public MyMatrix(string[] strings)
         {
@@ -143,12 +125,12 @@ namespace OOP_Lab_2
             {
                 throw new ArgumentException("String array cannot be null or empty.");
             }
-            Height = strings.Length;
-            Width = strings[0].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
-            matrix = new double[Height, Width];
+            int h = strings.Length;
+            int w = strings[0].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
+            matrix = new double[h, w];
             for (int i = 0; i < Height; i++)
             {
-                var cols = strings[i].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                var cols = strings[i].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 if (cols.Length != Width)
                 {
                     throw new ArgumentException("All rows in the string array must have the same number of columns.");

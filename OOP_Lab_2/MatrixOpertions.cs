@@ -8,32 +8,11 @@ namespace OOP_Lab_2
 {
     partial class MyMatrix
     {
-        public void Input()
-        {
-            Console.Write("Enter number of rows (Height): ");
-            Height = int.Parse(Console.ReadLine());
-            Console.Write("Enter number of columns (Width): ");
-            Width = int.Parse(Console.ReadLine());
-            for (int i = 0; i < Height; i++)
-            {
-                for (int j = 0; j < Width; j++)
-                {
-                    Console.Write($"Enter element [{i}, {j}]: ");
-                    string input = Console.ReadLine();
-                    if (double.TryParse(input, out double value))
-                    {
-                        matrix[i, j] = value;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Invalid input. Please enter a valid number.");
-                        j--; // Decrement j to repeat the input for this element
-                    }
-                }
-            }
-        }
         public static MyMatrix operator +(MyMatrix a, MyMatrix b)
         {
+            if (a == null) throw new ArgumentNullException("Matrix a cannot be null or empty");
+            if (b == null) throw new ArgumentNullException("Matrix b cannot be null or empty");
+
             if (a.Height != b.Height || a.Width != b.Width)
             {
                 throw new InvalidOperationException("Matrices must have the same dimensions for addition.");
@@ -50,6 +29,9 @@ namespace OOP_Lab_2
         }
         public static MyMatrix operator *(MyMatrix a, MyMatrix b)
         {
+            if (a == null) throw new ArgumentNullException("Matrix a cannot be null or empty");
+            if (b == null) throw new ArgumentNullException("Matrix b cannot be null or empty");
+
             if (a.Width != b.Height)
             {
                 throw new InvalidOperationException("Number of columns in the first matrix must equal the number of rows in the second matrix for multiplication.");
@@ -89,9 +71,6 @@ namespace OOP_Lab_2
         public void TransponeMe()
         {
             matrix = GetTransponedArray();
-            int temp = Height;
-            Height = Width;
-            Width = temp;
         }
     }
 }
